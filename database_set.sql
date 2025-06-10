@@ -1,0 +1,29 @@
+
+CREATE DATABASE IF NOT EXISTS COFFEE;
+
+CREATE SCHEMA IF NOT EXISTS COFFEE_SHOP;
+
+USE DATABASE COFFEE;
+
+USE SCHEMA COFFEE_SHOP;
+
+CREATE TABLE IF NOT EXISTS stores(
+    id INTEGER PRIMARY KEY,zone VARCHAR,addres VARCHAR,postal_code VARCHAR);
+
+CREATE TABLE IF NOT EXISTS products(
+    id INTEGER PRIMARY KEY,name VARCHAR,price FLOAT);
+
+
+CREATE TABLE IF NOT EXISTS clients(
+    id INTEGER PRIMARY KEY,name VARCHAR,email VARCHAR);
+
+
+CREATE TABLE IF NOT EXISTS transactions(
+    id INTEGER PRIMARY KEY,day DATE,time TIME,totas FLOAT,satisfaction VARCHAR,
+    payment VARCHAR,store_id INTEGER,client_id INTEGER,
+    FOREIGN KEY (store_id) REFERENCES stores(id),
+    FOREIGN KEY (client_id) REFERENCES clients(id));
+
+CREATE TABLE IF NOT EXISTS transactions_details(
+    purchase_id INTEGER,product_id INTEGER,quantity INTEGER,
+    PRIMARY KEY (purchase_id,product_id));
