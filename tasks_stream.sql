@@ -4,8 +4,8 @@ USE DATABASE COFFEE;
 
 USE SCHEMA COFFEE_SHOP;
 
-
-CREATE OR REPLACE TABLE sales_summary(
+--Create a table to analyze information
+CREATE IF NOT EXISTS TABLE sales_summary(
     date DATE,
     id_store INT,
     id_product INT,
@@ -13,38 +13,33 @@ CREATE OR REPLACE TABLE sales_summary(
     total_value FLOAT
 );
 
-CREATE OR REPLACE STREAM stream_transactions_details
-ON TABLE transactions_details;
+--Simulate the input of new transactions
+--INSERT INTO  transactions VALUES(13099,'01/01/2024','8:00',20,'Good','Cash',2,10);
 
-SELECT * FROM stream_transactions_details;
+--Chech the change in the transactions
+--SELECT * FROM transactions;
+--Input iformation to the example
+--INSERT INTO transactions_details VALUES(13099,7,3),(13098,1,2);
+--Check the new record
+--SELECT * FROM transactions_details;
+--Chech that the table
+--SELECT * FROM sales_summary;
+--Create the stream of the main table
+CREATE OR REPLACE STREAM stream_transactions_details ON TABLE transactions_details;
+--Check the operations saved
+--SELECT * FROM stream_transactions_details;
+--
 
 CREATE OR REPLACE TASK update_sales_summary
-SCHEDULE='5 MINUTE'
+SCHEDULE='1 MINUTE'
 AS
 INSERT INTO sales_summary
-SELECT t.date,t.store_id AS id_store,p.product_id AS id_product,SUM(a.quantity) AS total_quantity,SUM(t.total) AS total_quantity
-FROM (SELECT a.date,
-FROM 
-(SELECT * FROM stream_transactions_details
-WHERE METADATA$ACTION IN ('INSERT','UPDATE')) AS a 
-JOIN PRODUCTS AS p
-ON stream_transactions_details.product_id=product.id 
+SELECT t.day,t.store_id,std.product_id,SUM(std.quantity),SUM(t.total)
+FROM stream_transactions_details AS std
 JOIN transactions AS t
-ON t.id=a.purchase_id
-JOIN STORES AS s
-ON s.id=t.store_id)
+ON std.purchase_id=t.id
+GROUP BY t.day,t.store_id,std.product_id;
 
-ALTER TASK update_sales_summary RESUME
-
-----------------------
-INSERT INTO  transactions VALUES(13093,'01/01/2024','8:00',20,'Good','Cash',2,10);
-
-
-SELECT * FROM transactions;
-
-INSERT INTO transactions_details VALUES(13093,7,3),(13092,1,2);
-
-SELECT * FROM transactions_details;
-
+ALTER TASK update_sales_summary RESUME;
 
 ALTER TASK update_sales_summary SUSPEND;
