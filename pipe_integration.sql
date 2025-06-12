@@ -1,0 +1,32 @@
+USE ROLE ACCOUNTADMIN;
+
+USE DATABASE COFFEE;
+
+USE SCHEMA COFFEE_SHOP;
+
+CREATE OR REPLACE STORAGE INTEGRATION s3_coffee_integration
+TYPE=EXTERNAL_STAGE
+STORAGE_PROVIDER='S3'
+STORAGE_AWS_ROLE_ARN=''
+ENABLED=TRUE
+STORAGE_ALLOWED_LOCATIONS=('');
+
+DESCRIBE INTEGRATION s3_coffee_integration;
+
+CREATE OR REPLACE STAGE s3_coffee_external_stage
+URL=''
+STORAGE_INTEGRATION=s3_coffee_integration;
+
+ls @s3_coffee_external_stage;
+
+CREATE OR REPLACE PIPE upload_transactions
+AUTO_INGEST=TRUE
+AS
+COPY INTO transactions
+FROM @s3_coffee_external_stage
+FILE_FORMAT=(TYPE='CSV',SKIP_HEADER=1);
+--PATTERN = '.*transaction.*\.csv';
+
+SELECT * FROM transactions
+WHERE ID=30000;
+
